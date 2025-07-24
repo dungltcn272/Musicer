@@ -91,9 +91,6 @@ class MusicService : Service(), CoroutineScope by MainScope() {
                     mediaPlayer?.seekTo(seekPosition)
                     showNotification(songList?.getOrNull(currentPosition))
                 }
-
-                ACTION_SHUFFLE -> toggleShuffle()
-                ACTION_REPEAT -> toggleRepeat()
             }
         }
 
@@ -194,16 +191,6 @@ class MusicService : Service(), CoroutineScope by MainScope() {
         notifySongChanged(songList!![currentPosition])
     }
 
-    private fun toggleShuffle() {
-        isShuffle = !isShuffle
-        notifyStatusChanged("Shuffle", isShuffle)
-    }
-
-    private fun toggleRepeat() {
-        isRepeat = !isRepeat
-        notifyStatusChanged("Repeat", isRepeat)
-    }
-
     private fun showNotification(song: Song?) {
         launch {
             val thumbnailBitmap = withContext(Dispatchers.IO) {
@@ -237,7 +224,6 @@ class MusicService : Service(), CoroutineScope by MainScope() {
                         else -> BitmapFactory.decodeFile(thumbnail)
                     }
                 } catch (e: Exception) {
-                    Log.e("ThumbnailError", "Error loading image", e)
                     null
                 }
             } ?: BitmapFactory.decodeResource(resources, R.drawable.ic_default_album_art)
@@ -385,7 +371,5 @@ class MusicService : Service(), CoroutineScope by MainScope() {
         const val ACTION_NEXT = "ACTION_NEXT"
         const val ACTION_PREV = "ACTION_PREV"
         const val SEEK_TO = "SEEK_TO"
-        const val ACTION_SHUFFLE = "ACTION_SHUFFLE"
-        const val ACTION_REPEAT = "ACTION_REPEAT"
     }
 }

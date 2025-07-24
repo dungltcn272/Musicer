@@ -1,43 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="8dp"
-    android:gravity="center_vertical">
-
-    <ImageView
-        android:id="@+id/iv_item_album_art"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:contentDescription="null"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_default_album_art" />
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginBottom="8dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="16dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-        <TextView
-            android:id="@+id/tv_item_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            tools:text="Song Title" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
 
-        <TextView
-            android:id="@+id/tv_item_artist"
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/iv_item_album_art"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Album art for the song"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_default_album_art" />
+        </androidx.cardview.widget.CardView>
+
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            tools:text="Artist Name" />
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_item_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                tools:text="Tên bài hát dài quá dài và cần phải xuống dòng" />
+
+            <TextView
+                android:id="@+id/tv_item_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="14sp"
+                tools:text="Tên ca sĩ" />
+        </LinearLayout>
+
+
     </LinearLayout>
-
-</LinearLayout>
+</androidx.cardview.widget.CardView>

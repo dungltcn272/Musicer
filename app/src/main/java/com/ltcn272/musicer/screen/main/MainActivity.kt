@@ -16,6 +16,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,7 +32,7 @@ import com.ltcn272.musicer.service.MusicService
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var miniPlayer: LinearLayout
+    private lateinit var miniPlayer: CardView
     private lateinit var tvSongName: TextView
     private lateinit var btnPlayPause: ImageView
     private lateinit var btnNext: ImageView
@@ -90,7 +91,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setView() {
-        miniPlayer = findViewById(R.id.mini_player)
+        miniPlayer = findViewById(R.id.mini_player_card)
         tvSongName = findViewById(R.id.tv_song_name)
         tvSongName.isSelected = true
         btnPlayPause = findViewById(R.id.btn_pause_resume)
