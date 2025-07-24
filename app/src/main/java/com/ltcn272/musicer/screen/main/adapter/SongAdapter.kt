@@ -1,4 +1,4 @@
-package com.ltcn272.musicer.screen.main.assets.adapter
+package com.ltcn272.musicer.screen.main.adapter
 
 import android.content.Intent
 import android.view.LayoutInflater

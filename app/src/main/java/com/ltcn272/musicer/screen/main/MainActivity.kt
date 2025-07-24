@@ -9,7 +9,6 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -37,7 +36,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnPlayPause: ImageView
     private lateinit var btnNext: ImageView
     private lateinit var btnPrev: ImageView
-
     private var isPlaying = false
 
     private val musicStateReceiver = object : BroadcastReceiver() {
@@ -94,6 +92,7 @@ class MainActivity : AppCompatActivity() {
     private fun setView() {
         miniPlayer = findViewById(R.id.mini_player)
         tvSongName = findViewById(R.id.tv_song_name)
+        tvSongName.isSelected = true
         btnPlayPause = findViewById(R.id.btn_pause_resume)
         btnNext = findViewById(R.id.btn_next)
         btnPrev = findViewById(R.id.btn_prev)

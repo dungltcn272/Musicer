@@ -18,6 +18,7 @@ import com.ltcn272.musicer.databinding.ActivityPlayMusicBinding
 import com.ltcn272.musicer.service.MusicService
 import android.widget.SeekBar
 import android.widget.Toast
+import com.bumptech.glide.Glide
 
 class PlayMusicActivity : AppCompatActivity() {
 
@@ -116,6 +117,7 @@ class PlayMusicActivity : AppCompatActivity() {
 
         val serviceIntent = Intent(this, MusicService::class.java)
         bindService(serviceIntent, connection, BIND_AUTO_CREATE)
+
 
         setupControlButtons()
 
@@ -234,9 +236,22 @@ class PlayMusicActivity : AppCompatActivity() {
     private fun updateUI(song: Song) {
         currentSong = song
         binding.tvMusicTitle.text = song.title
+        binding.tvMusicTitle.isSelected = true
         binding.tvMusicArtist.text = song.artist
         binding.seekBarMusic.max = song.duration
         binding.tvDuration.text = formatDuration(song.duration)
+        musicService?.getCurrentTime()?.let {
+            binding.seekBarMusic.progress = it
+            binding.tvCurrentTime.text= formatDuration(it)
+        }
+        if (song.thumbnail.isNotEmpty()) {
+            Glide.with(binding.root.context)
+                .load(song.thumbnail)
+                .placeholder(R.drawable.ic_default_album_art)
+                .into(binding.ivAlbumArt)
+        } else {
+            binding.ivAlbumArt.setImageResource(R.drawable.ic_default_album_art)
+        }
         binding.ivPlayPause.setImageResource(
             if (musicService?.isPlaying() == true) R.drawable.ic_pause else R.drawable.ic_play
         )
@@ -261,7 +276,6 @@ class PlayMusicActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         if (isBound) {
-            Log.d("ACHHSH", "onDestroy: ")
             unbindService(connection)
             isBound = false
         }

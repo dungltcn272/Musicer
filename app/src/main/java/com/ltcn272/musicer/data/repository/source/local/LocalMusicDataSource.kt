@@ -12,7 +12,8 @@ class LocalMusicDataSource @Inject constructor() {
         val contentResolver = context.contentResolver
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0"
-        val cursor = contentResolver.query(uri, null, selection, null, null)
+        val sortOrder = "${MediaStore.Audio.Media.DATE_ADDED} DESC"
+        val cursor = contentResolver.query(uri, null, selection, null, sortOrder)
 
         val songs = mutableListOf<Song>()
 

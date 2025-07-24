@@ -28,7 +28,16 @@
         android:background="#EEEEEE"
         android:visibility="gone">
 
+        <!-- Thumbnail -->
+        <ImageView
+            android:id="@+id/img_thumbnail"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="Thumbnail"
+            android:src="@drawable/ic_music_note" />
 
+        <!-- Tên bài hát -->
         <TextView
             android:id="@+id/tv_song_name"
             android:layout_width="0dp"
@@ -36,29 +45,42 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="Không có bài hát"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:freezesText="true"
+            android:scrollHorizontally="true" />
 
+
+        <!-- Các nút điều khiển -->
         <ImageView
             android:id="@+id/btn_prev"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_prev"
-            android:contentDescription="Previous" />
+            android:contentDescription="Previous"
+            android:padding="4dp" />
 
         <ImageView
             android:id="@+id/btn_pause_resume"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_pause"
-            android:contentDescription="Pause" />
+            android:contentDescription="Pause"
+            android:padding="4dp" />
 
         <ImageView
             android:id="@+id/btn_next"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:src="@drawable/ic_next"
-            android:contentDescription="Next" />
+            android:contentDescription="Next"
+            android:padding="4dp" />
     </LinearLayout>
+
 
 
     <!-- Bottom Navigation -->

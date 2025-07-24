@@ -19,13 +19,16 @@ import com.bumptech.glide.Glide
 import com.ltcn272.musicer.R
 import com.ltcn272.musicer.data.model.Song
 import com.ltcn272.musicer.receiver.NotificationReceiver
+import com.ltcn272.musicer.screen.play_music.PlayMusicActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class MusicService : Service() {
+class MusicService : Service(), CoroutineScope by MainScope() {
 
     private var mediaPlayer: MediaPlayer? = null
     private lateinit var notificationManager: NotificationManagerCompat
@@ -79,6 +82,7 @@ class MusicService : Service() {
                         stopSelf()
                     }
                 }
+
                 ACTION_PLAY -> togglePlayPause()
                 ACTION_NEXT -> playNext()
                 ACTION_PREV -> playPrevious()
@@ -87,6 +91,7 @@ class MusicService : Service() {
                     mediaPlayer?.seekTo(seekPosition)
                     showNotification(songList?.getOrNull(currentPosition))
                 }
+
                 ACTION_SHUFFLE -> toggleShuffle()
                 ACTION_REPEAT -> toggleRepeat()
             }
@@ -127,7 +132,6 @@ class MusicService : Service() {
                     }
                 }
                 setOnErrorListener { _, what, extra ->
-                    Log.e("MusicService", "MediaPlayer error: what=$what, extra=$extra")
                     if (song.audioUrl.startsWith("http") && retryCount < 3) {
                         playSong(song, retryCount + 1)
                     } else {
@@ -138,7 +142,6 @@ class MusicService : Service() {
                 }
                 prepareAsync()
             } catch (e: Exception) {
-                Log.e("MusicService", "Error setting data source", e)
                 if (song.audioUrl.startsWith("http") && retryCount < 3) {
                     playSong(song, retryCount + 1)
                 } else {
@@ -167,7 +170,6 @@ class MusicService : Service() {
 
     private fun playNext() {
         if (songList.isNullOrEmpty()) {
-            Log.w("MusicService", "Song list is empty, cannot play next")
             return
         }
         currentPosition = if (isShuffle) {
@@ -181,7 +183,6 @@ class MusicService : Service() {
 
     private fun playPrevious() {
         if (songList.isNullOrEmpty()) {
-            Log.w("MusicService", "Song list is empty, cannot play previous")
             return
         }
         currentPosition = if (isShuffle) {
@@ -204,57 +205,77 @@ class MusicService : Service() {
     }
 
     private fun showNotification(song: Song?) {
-        val title = song?.title ?: "Không có bài hát"
-        val artist = song?.artist ?: "Unknown"
+        launch {
+            val thumbnailBitmap = withContext(Dispatchers.IO) {
+                try {
+                    val thumbnail = song?.thumbnail
+                    Log.d("Thumbnail", "Loading thumbnail: $thumbnail")
+                    when {
+                        thumbnail.isNullOrEmpty() -> null
 
-        val thumbnailBitmap = song?.thumbnail?.let { thumbnail ->
-            try {
-                when {
-                    thumbnail.startsWith("http", true) || thumbnail.startsWith("https", true) -> {
-                        Glide.with(this)
-                            .asBitmap()
-                            .load(thumbnail)
-                            .submit(128, 128)
-                            .get()
-                    }
-                    thumbnail.startsWith("content://", true) || thumbnail.startsWith("file://", true) -> {
-                        val uri = thumbnail.toUri()
-                        contentResolver.openInputStream(uri)?.use { inputStream ->
-                            BitmapFactory.decodeStream(inputStream)
+                        thumbnail.startsWith("http", true) || thumbnail.startsWith(
+                            "https",
+                            true
+                        ) -> {
+                            Glide.with(this@MusicService)
+                                .asBitmap()
+                                .load(thumbnail)
+                                .submit(128, 128)
+                                .get()
                         }
+
+                        thumbnail.startsWith("content://", true) || thumbnail.startsWith(
+                            "file://",
+                            true
+                        ) -> {
+                            val uri = thumbnail.toUri()
+                            contentResolver.openInputStream(uri)?.use { inputStream ->
+                                BitmapFactory.decodeStream(inputStream)
+                            }
+                        }
+
+                        else -> BitmapFactory.decodeFile(thumbnail)
                     }
-                    else -> {
-                        BitmapFactory.decodeFile(thumbnail)
-                    }
+                } catch (e: Exception) {
+                    Log.e("ThumbnailError", "Error loading image", e)
+                    null
                 }
-            } catch (e: Exception) {
-                null
-            }
-        } ?: BitmapFactory.decodeResource(resources, R.drawable.ic_default_album_art)
+            } ?: BitmapFactory.decodeResource(resources, R.drawable.ic_default_album_art)
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_music_note)
-            .setContentTitle(title)
-            .setContentText(artist)
-            .setLargeIcon(thumbnailBitmap)
-            .addAction(R.drawable.ic_prev, "Prev", getPendingIntent(ACTION_PREV))
-            .addAction(
-                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
-                if (isPlaying) "Pause" else "Play",
-                getPendingIntent(ACTION_PLAY)
+            val intent = Intent(this@MusicService, PlayMusicActivity::class.java)
+            val pendingIntent = PendingIntent.getActivity(
+                this@MusicService,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
-            .addAction(R.drawable.ic_next, "Next", getPendingIntent(ACTION_NEXT))
-            .setStyle(
-                androidx.media.app.NotificationCompat.MediaStyle()
-                    .setShowActionsInCompactView(0, 1, 2)
-            )
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setOnlyAlertOnce(true)
-            .setOngoing(isPlaying)
-            .build()
+            val notification = NotificationCompat.Builder(this@MusicService, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_music_note)
+                .setContentTitle(song?.title ?: "Không có bài hát")
+                .setContentText(song?.artist ?: "Unknown")
+                .setLargeIcon(thumbnailBitmap)
+                .addAction(R.drawable.ic_prev, "Prev", getPendingIntent(ACTION_PREV))
+                .addAction(
+                    if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
+                    if (isPlaying) "Pause" else "Play",
+                    getPendingIntent(ACTION_PLAY)
+                )
+                .addAction(R.drawable.ic_next, "Next", getPendingIntent(ACTION_NEXT))
+                .setStyle(
+                    androidx.media.app.NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1, 2)
+                )
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setOnlyAlertOnce(true)
+                .setAutoCancel(false)
+                .setOngoing(isPlaying)
+                .build()
 
-        startForeground(1, notification)
+            startForeground(1, notification)
+        }
     }
+
 
     private fun getPendingIntent(action: String): PendingIntent {
         val intent = Intent(this, NotificationReceiver::class.java).apply {
@@ -351,11 +372,9 @@ class MusicService : Service() {
         return MusicBinder()
     }
 
-    fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
+    fun getCurrentTime(): Int? = mediaPlayer?.currentPosition
     fun getCurrentSong(): Song? = songList?.getOrNull(currentPosition)
     fun isPlaying(): Boolean = isPlaying
-    fun toggleShuffleMode() = toggleShuffle()
-    fun toggleRepeatMode() = toggleRepeat()
 
     inner class MusicBinder : Binder() {
         fun getService(): MusicService = this@MusicService

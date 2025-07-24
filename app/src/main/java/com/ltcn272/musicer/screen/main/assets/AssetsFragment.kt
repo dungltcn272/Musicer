@@ -14,7 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ltcn272.musicer.data.model.Song
 import com.ltcn272.musicer.databinding.FragmentAssetsBinding
-import com.ltcn272.musicer.screen.main.assets.adapter.SongAdapter
+import com.ltcn272.musicer.screen.main.adapter.SongAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -57,7 +57,6 @@ class AssetsFragment : Fragment(), AssetsContract.View {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = songAdapter
         }
-
         checkAndRequestPermission()
     }
 
