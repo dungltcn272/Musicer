@@ -1,6 +1,5 @@
-package com.ltcn272.musicer.data.remote.api
+package com.ltcn272.musicer.data.repository.source.remote
 
-import com.ltcn272.musicer.data.remote.model.ApiResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 

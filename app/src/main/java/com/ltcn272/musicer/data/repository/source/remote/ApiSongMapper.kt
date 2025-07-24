@@ -1,7 +1,6 @@
-package com.ltcn272.musicer.data.remote.mapper
+package com.ltcn272.musicer.data.repository.source.remote
 
 import com.ltcn272.musicer.data.model.Song
-import com.ltcn272.musicer.data.remote.model.ApiSong
 
 fun ApiSong.toDomainModel(): Song {
     return Song(

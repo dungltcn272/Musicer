@@ -1,8 +1,8 @@
 package com.ltcn272.musicer.di
 
-import com.ltcn272.musicer.data.local.datasource.LocalMusicDataSource
-import com.ltcn272.musicer.data.remote.api.MusicApiService
-import com.ltcn272.musicer.data.remote.datasource.RemoteMusicDataSource
+import com.ltcn272.musicer.data.repository.source.local.LocalMusicDataSource
+import com.ltcn272.musicer.data.repository.source.remote.MusicApiService
+import com.ltcn272.musicer.data.repository.source.remote.RemoteMusicDataSource
 import com.ltcn272.musicer.data.repository.SongRepository
 import com.ltcn272.musicer.data.repository.SongRepositoryImpl
 import dagger.Module

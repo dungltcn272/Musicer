@@ -1,4 +1,4 @@
-package com.ltcn272.musicer.data.remote.model
+package com.ltcn272.musicer.data.repository.source.remote
 
 import com.google.gson.annotations.SerializedName
 

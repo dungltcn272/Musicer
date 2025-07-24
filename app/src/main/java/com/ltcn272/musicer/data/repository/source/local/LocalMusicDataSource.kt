@@ -1,4 +1,4 @@
-package com.ltcn272.musicer.data.local.datasource
+package com.ltcn272.musicer.data.repository.source.local
 
 import android.content.Context
 import android.provider.MediaStore

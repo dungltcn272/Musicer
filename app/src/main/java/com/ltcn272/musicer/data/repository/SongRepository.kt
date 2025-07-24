@@ -4,6 +4,6 @@ import android.content.Context
 import com.ltcn272.musicer.data.model.Song
 
 interface SongRepository {
-    suspend fun getOnlineSongs(): List<Song>
+    suspend fun getOnlineSongs(): Result<List<Song>>
     suspend fun getLocalSongs(context: Context): List<Song>
 }
