@@ -70,7 +70,6 @@ class MusicService : Service() {
 
             val receivePosition = it.getIntExtra("SONG_INDEX", -1)
             if (receivePosition != -1) currentPosition = receivePosition
-            Log.d("MusicService", "Current position: $currentPosition")
 
             when (it.action) {
                 null -> {
@@ -117,6 +116,7 @@ class MusicService : Service() {
                     it.start()
                     this@MusicService.isPlaying = true
                     showNotification(song)
+                    notifyMusicStateChanged(song, true)
                     startProgressUpdates()
                 }
                 setOnCompletionListener {
@@ -161,6 +161,7 @@ class MusicService : Service() {
                 startProgressUpdates()
             }
             showNotification(songList?.getOrNull(currentPosition))
+            notifyMusicStateChanged(songList?.getOrNull(currentPosition), isPlaying)
         }
     }
 
@@ -317,6 +318,14 @@ class MusicService : Service() {
         sendBroadcast(intent)
     }
 
+    private fun notifyMusicStateChanged(song: Song?, isPlaying: Boolean) {
+        val intent = Intent("com.ltcn272.musicer.MUSIC_STATE_CHANGED").apply {
+            putExtra("IS_PLAYING", isPlaying)
+            putExtra("SONG_NAME", song?.title ?: "Không xác định")
+        }
+        sendBroadcast(intent)
+    }
+
     private fun notifyError(message: String) {
         val intent = Intent("com.ltcn272.musicer.ERROR")
         intent.putExtra("ERROR_MESSAGE", message)
@@ -333,10 +342,14 @@ class MusicService : Service() {
             @Suppress("DEPRECATION")
             stopForeground(true)
         }
+        notifyMusicStateChanged(null, false)
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder = MusicBinder()
+    override fun onBind(intent: Intent?): IBinder {
+        Log.d("MusicService", "onBind called")
+        return MusicBinder()
+    }
 
     fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
     fun getCurrentSong(): Song? = songList?.getOrNull(currentPosition)

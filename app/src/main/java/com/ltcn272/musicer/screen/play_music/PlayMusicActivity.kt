@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -25,6 +26,7 @@ class PlayMusicActivity : AppCompatActivity() {
     private var isBound = false
     private var isUserSeeking = false
     private var currentSong: Song? = null
+    private var isPlaying = false
 
     private val songChangedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -51,16 +53,24 @@ class PlayMusicActivity : AppCompatActivity() {
                 binding.seekBarMusic.max = duration
                 binding.tvDuration.text = formatDuration(duration)
             }
-            binding.ivPlayPause.setImageResource(
-                if (musicService?.isPlaying() == true) R.drawable.ic_pause else R.drawable.ic_play
-            )
         }
     }
+
 
     private val errorReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val errorMessage = intent?.getStringExtra("ERROR_MESSAGE") ?: "Đã xảy ra lỗi"
             Toast.makeText(this@PlayMusicActivity, errorMessage, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private val musicStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val isPlayingNow = intent?.getBooleanExtra("IS_PLAYING", false) ?: false
+
+            isPlaying = isPlayingNow
+
+            changePlayPauseVisibility()
         }
     }
 
@@ -81,18 +91,13 @@ class PlayMusicActivity : AppCompatActivity() {
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Log.d("PlayMusicActivity", "Service connected")
             val binder = service as MusicService.MusicBinder
             musicService = binder.getService()
             isBound = true
-            // Cập nhật UI với bài hát hiện tại từ MusicService
             musicService?.getCurrentSong()?.let { updateUI(it) }
-            // Cập nhật trạng thái shuffle/repeat
-//            updateStatusButtons()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Log.d("PlayMusicActivity", "Service disconnected")
             musicService = null
             isBound = false
         }
@@ -109,38 +114,22 @@ class PlayMusicActivity : AppCompatActivity() {
             insets
         }
 
-        // Lấy dữ liệu từ Intent
-        val songList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableArrayListExtra("SONG_LIST", Song::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableArrayListExtra("SONG_LIST")
-        }
-        val currentIndex = intent.getIntExtra("SONG_INDEX", 0)
-
-        // Khởi động và liên kết dịch vụ
-        val serviceIntent = Intent(this, MusicService::class.java).apply {
-            putParcelableArrayListExtra("SONG_LIST", ArrayList(songList ?: emptyList()))
-            putExtra("SONG_INDEX", currentIndex)
-        }
-        ContextCompat.startForegroundService(this, serviceIntent)
+        val serviceIntent = Intent(this, MusicService::class.java)
         bindService(serviceIntent, connection, BIND_AUTO_CREATE)
 
-        // Thiết lập các nút điều khiển
         setupControlButtons()
-        // Thiết lập SeekBar
+
         setupSeekBar()
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onStart() {
         super.onStart()
-        // Đăng ký các BroadcastReceiver bằng ContextCompat
         val songIntentFilter = IntentFilter("com.ltcn272.musicer.SONG_CHANGED")
         val progressIntentFilter = IntentFilter("com.ltcn272.musicer.PROGRESS_UPDATE")
         val errorIntentFilter = IntentFilter("com.ltcn272.musicer.ERROR")
         val statusIntentFilter = IntentFilter("com.ltcn272.musicer.STATUS_CHANGED")
-
+        val playingFilter = IntentFilter("com.ltcn272.musicer.MUSIC_STATE_CHANGED")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // API 33+: Sử dụng RECEIVER_NOT_EXPORTED
             ContextCompat.registerReceiver(
@@ -167,12 +156,17 @@ class PlayMusicActivity : AppCompatActivity() {
                 statusIntentFilter,
                 ContextCompat.RECEIVER_NOT_EXPORTED
             )
+            ContextCompat.registerReceiver(
+                this, musicStateReceiver, playingFilter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
         } else {
             // API < 33: Đăng ký không cần cờ
             registerReceiver(songChangedReceiver, songIntentFilter)
             registerReceiver(progressUpdateReceiver, progressIntentFilter)
             registerReceiver(errorReceiver, errorIntentFilter)
             registerReceiver(statusChangedReceiver, statusIntentFilter)
+            registerReceiver(musicStateReceiver, playingFilter)
         }
     }
 
@@ -182,6 +176,7 @@ class PlayMusicActivity : AppCompatActivity() {
                 action = MusicService.ACTION_PLAY
             }
             startService(intent)
+            changePlayPauseVisibility()
         }
 
         binding.ivNext.setOnClickListener {
@@ -205,6 +200,12 @@ class PlayMusicActivity : AppCompatActivity() {
 //        binding.btnRepeat.setOnClickListener {
 //            musicService?.toggleRepeatMode()
 //        }
+    }
+
+    private fun changePlayPauseVisibility() {
+        binding.ivPlayPause.setImageResource(
+            if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+        )
     }
 
     private fun setupSeekBar() {
@@ -236,7 +237,6 @@ class PlayMusicActivity : AppCompatActivity() {
         binding.tvMusicArtist.text = song.artist
         binding.seekBarMusic.max = song.duration
         binding.tvDuration.text = formatDuration(song.duration)
-        // Cập nhật trạng thái nút play/pause
         binding.ivPlayPause.setImageResource(
             if (musicService?.isPlaying() == true) R.drawable.ic_pause else R.drawable.ic_play
         )
@@ -261,6 +261,7 @@ class PlayMusicActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         if (isBound) {
+            Log.d("ACHHSH", "onDestroy: ")
             unbindService(connection)
             isBound = false
         }
@@ -268,5 +269,7 @@ class PlayMusicActivity : AppCompatActivity() {
         unregisterReceiver(progressUpdateReceiver)
         unregisterReceiver(errorReceiver)
         unregisterReceiver(statusChangedReceiver)
+        unregisterReceiver(musicStateReceiver)
     }
+
 }
