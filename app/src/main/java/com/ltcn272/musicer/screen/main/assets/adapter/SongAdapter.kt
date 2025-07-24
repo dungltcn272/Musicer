@@ -1,5 +1,6 @@
 package com.ltcn272.musicer.screen.main.assets.adapter
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -9,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.ltcn272.musicer.R
 import com.ltcn272.musicer.data.model.Song
 import com.ltcn272.musicer.databinding.ItemMusicBinding
+import com.ltcn272.musicer.screen.play_music.PlayMusicActivity
 
 class SongAdapter : ListAdapter<Song, SongAdapter.SongViewHolder>(DiffCallback()) {
 
@@ -25,6 +27,21 @@ class SongAdapter : ListAdapter<Song, SongAdapter.SongViewHolder>(DiffCallback()
             } else {
                 binding.ivItemAlbumArt.setImageResource(R.drawable.ic_default_album_art)
             }
+
+            binding.root.setOnClickListener {
+                val index = adapterPosition
+                if (index != RecyclerView.NO_POSITION) {
+                    val intent = Intent(itemView.context, PlayMusicActivity::class.java).apply {
+                        putExtra("song_title", song.title)
+                        putExtra("song_artist", song.artist)
+                        putExtra("song_path", song.audioUrl)
+                        putParcelableArrayListExtra("SONG_LIST", ArrayList(currentList))
+                        putExtra("SONG_INDEX", index)
+                    }
+                    itemView.context.startActivity(intent)
+                }
+            }
+
         }
     }
 
