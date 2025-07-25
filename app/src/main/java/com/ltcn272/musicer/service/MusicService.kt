@@ -163,7 +163,7 @@ class MusicService : Service(), CoroutineScope by MainScope() {
         if (songList.isNullOrEmpty()) {
             return
         }
-        (currentPosition + 1) % songList!!.size
+        currentPosition = (currentPosition + 1) % songList!!.size
         playSong(songList!![currentPosition])
         notifySongChanged(songList!![currentPosition])
     }
@@ -172,7 +172,7 @@ class MusicService : Service(), CoroutineScope by MainScope() {
         if (songList.isNullOrEmpty()) {
             return
         }
-        if (currentPosition - 1 < 0) songList!!.size - 1 else currentPosition - 1
+        currentPosition = if (currentPosition - 1 < 0) songList!!.size - 1 else currentPosition - 1
         playSong(songList!![currentPosition])
         notifySongChanged(songList!![currentPosition])
     }

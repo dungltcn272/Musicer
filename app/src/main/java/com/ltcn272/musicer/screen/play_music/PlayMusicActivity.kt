@@ -5,8 +5,6 @@ import android.content.*
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
-import android.util.Log
-import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -75,20 +73,6 @@ class PlayMusicActivity : AppCompatActivity() {
         }
     }
 
-    private val statusChangedReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val statusType = intent?.getStringExtra("STATUS_TYPE")
-            val enabled = intent?.getBooleanExtra("ENABLED", false) ?: false
-//            when (statusType) {
-//                "Shuffle" -> binding.btnShuffle.setImageResource(
-//                    if (enabled) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
-//                )
-//                "Repeat" -> binding.btnRepeat.setImageResource(
-//                    if (enabled) R.drawable.ic_repeat_on else R.drawable.ic_repeat_off
-//                )
-//            }
-        }
-    }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -130,7 +114,6 @@ class PlayMusicActivity : AppCompatActivity() {
         val songIntentFilter = IntentFilter("com.ltcn272.musicer.SONG_CHANGED")
         val progressIntentFilter = IntentFilter("com.ltcn272.musicer.PROGRESS_UPDATE")
         val errorIntentFilter = IntentFilter("com.ltcn272.musicer.ERROR")
-        val statusIntentFilter = IntentFilter("com.ltcn272.musicer.STATUS_CHANGED")
         val playingFilter = IntentFilter("com.ltcn272.musicer.MUSIC_STATE_CHANGED")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // API 33+: Sử dụng RECEIVER_NOT_EXPORTED
@@ -153,12 +136,6 @@ class PlayMusicActivity : AppCompatActivity() {
                 ContextCompat.RECEIVER_NOT_EXPORTED
             )
             ContextCompat.registerReceiver(
-                this,
-                statusChangedReceiver,
-                statusIntentFilter,
-                ContextCompat.RECEIVER_NOT_EXPORTED
-            )
-            ContextCompat.registerReceiver(
                 this, musicStateReceiver, playingFilter,
                 ContextCompat.RECEIVER_NOT_EXPORTED
             )
@@ -167,7 +144,6 @@ class PlayMusicActivity : AppCompatActivity() {
             registerReceiver(songChangedReceiver, songIntentFilter)
             registerReceiver(progressUpdateReceiver, progressIntentFilter)
             registerReceiver(errorReceiver, errorIntentFilter)
-            registerReceiver(statusChangedReceiver, statusIntentFilter)
             registerReceiver(musicStateReceiver, playingFilter)
         }
     }
@@ -194,14 +170,6 @@ class PlayMusicActivity : AppCompatActivity() {
             }
             startService(intent)
         }
-
-//        binding.btnShuffle.setOnClickListener {
-//            musicService?.toggleShuffleMode()
-//        }
-//
-//        binding.btnRepeat.setOnClickListener {
-//            musicService?.toggleRepeatMode()
-//        }
     }
 
     private fun changePlayPauseVisibility() {
@@ -257,14 +225,6 @@ class PlayMusicActivity : AppCompatActivity() {
         )
     }
 
-//    private fun updateStatusButtons() {
-//        binding.btnShuffle.setImageResource(
-//            if (musicService?.isShuffle == true) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_off
-//        )
-//        binding.btnRepeat.setImageResource(
-//            if (musicService?.isRepeat == true) R.drawable.ic_repeat_on else R.drawable.ic_repeat_off
-//        )
-//    }
 
     @SuppressLint("DefaultLocale")
     private fun formatDuration(duration: Int): String {
@@ -282,7 +242,6 @@ class PlayMusicActivity : AppCompatActivity() {
         unregisterReceiver(songChangedReceiver)
         unregisterReceiver(progressUpdateReceiver)
         unregisterReceiver(errorReceiver)
-        unregisterReceiver(statusChangedReceiver)
         unregisterReceiver(musicStateReceiver)
     }
 
