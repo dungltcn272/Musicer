@@ -36,8 +36,6 @@ class MusicService : Service(), CoroutineScope by MainScope() {
     private var isPlaying = false
     private var songList: List<Song>? = null
     private var currentPosition = 0
-    private var isShuffle = false
-    private var isRepeat = false
     private var progressJob: Job? = null
 
     override fun onCreate() {
@@ -122,13 +120,9 @@ class MusicService : Service(), CoroutineScope by MainScope() {
                     startProgressUpdates()
                 }
                 setOnCompletionListener {
-                    if (isRepeat) {
-                        playSong(song)
-                    } else {
-                        playNext()
-                    }
+                    playNext()
                 }
-                setOnErrorListener { _, what, extra ->
+                setOnErrorListener { _, what, _ ->
                     if (song.audioUrl.startsWith("http") && retryCount < 3) {
                         playSong(song, retryCount + 1)
                     } else {
@@ -169,11 +163,7 @@ class MusicService : Service(), CoroutineScope by MainScope() {
         if (songList.isNullOrEmpty()) {
             return
         }
-        currentPosition = if (isShuffle) {
-            (songList!!.indices).random()
-        } else {
-            (currentPosition + 1) % songList!!.size
-        }
+        (currentPosition + 1) % songList!!.size
         playSong(songList!![currentPosition])
         notifySongChanged(songList!![currentPosition])
     }
@@ -182,11 +172,7 @@ class MusicService : Service(), CoroutineScope by MainScope() {
         if (songList.isNullOrEmpty()) {
             return
         }
-        currentPosition = if (isShuffle) {
-            (songList!!.indices).random()
-        } else {
-            if (currentPosition - 1 < 0) songList!!.size - 1 else currentPosition - 1
-        }
+        if (currentPosition - 1 < 0) songList!!.size - 1 else currentPosition - 1
         playSong(songList!![currentPosition])
         notifySongChanged(songList!![currentPosition])
     }
@@ -315,13 +301,6 @@ class MusicService : Service(), CoroutineScope by MainScope() {
     private fun notifySongChanged(song: Song) {
         val intent = Intent("com.ltcn272.musicer.SONG_CHANGED")
         intent.putExtra("SONG_OBJECT", song)
-        sendBroadcast(intent)
-    }
-
-    private fun notifyStatusChanged(status: String, enabled: Boolean) {
-        val intent = Intent("com.ltcn272.musicer.STATUS_CHANGED")
-        intent.putExtra("STATUS_TYPE", status)
-        intent.putExtra("ENABLED", enabled)
         sendBroadcast(intent)
     }
 
